@@ -1,63 +1,63 @@
-const test = require('node:test');
+const testUtil = require('node:test');
 const assert = require('assert');
 const fs = require('fs');
 
-test.mock.method(fs, 'readFile', (file, options, callback) => {
-    callback(null, 'Aqur\nBobi\ncat');
+// Mock the file containing names
+testUtil.mock.method(fs, 'readFile', (file, options, callback) => {
+    callback(null, 'Alice\nBob\ncat');
 });
 
 const { Application, MailSystem } = require('./main');
 
-test('MailSystem_write()', () => {
+testUtil('MailSystem_write()', () => {
     const mailSystem = new MailSystem();
-    assert.strictEqual(mailSystem.write('Aqur'), 'Congrats, Aqur!');
+    assert.strictEqual(mailSystem.write('Alice'), 'Congrats, Alice!');
     assert.strictEqual(mailSystem.write(202), 'Congrats, 202!');
     assert.strictEqual(mailSystem.write(null), 'Congrats, null!');
 });
 
-test('MailSystem_send()', () => {
+testUtil('MailSystem_send()', () => {
     const mailSystem = new MailSystem();
-    const name = 'Aqur';
-    test.mock.method(Math, 'random', () => 0.9);
+    const name = 'Alice';
+    testUtil.mock.method(Math, 'random', () => 0.9);
     assert.strictEqual(mailSystem.send(name, 'success'), true);
-    test.mock.method(Math, 'random', () => 0.2);
+    testUtil.mock.method(Math, 'random', () => 0.2);
     assert.strictEqual(mailSystem.send(name, 'fail'), false);
 });
 
-test('Application_getNames()', async () => {
+testUtil('Application_getNames()', async () => {
     const app = new Application();
-    const nameList = ['Aqur', 'Bobi', 'cat'];
+    const nameList = ['Alice', 'Bob', 'cat'];
     const [names, selected] = await app.getNames();
     assert.deepStrictEqual(names, nameList);
     assert.deepStrictEqual(selected, []);
 });
 
-test('Application_getRandomPerson()', async () => {
+testUtil('Application_getRandomPerson()', async () => {
     const app = new Application();
     const [names] = await app.getNames();                          
     const randomPerson = app.getRandomPerson();
 });
 
-test('Application_selectNextPerson()', async () => {
+testUtil('Application_selectNextPerson()', async () => {
     const app = new Application();
     const [names] = await app.getNames();
-    app.selected = ['Aqur'];
+    app.selected = ['Alice'];
     let count = 0;
-    test.mock.method(app, 'getRandomPerson', () => names[count++]);
-    assert.strictEqual(app.selectNextPerson(), 'Bobi');
-    assert.deepStrictEqual(app.selected, ['Aqur', 'Bobi']);
+    testUtil.mock.method(app, 'getRandomPerson', () => names[count++]);
+    assert.strictEqual(app.selectNextPerson(), 'Bob');
+    assert.deepStrictEqual(app.selected, ['Alice', 'Bob']);
     assert.strictEqual(app.selectNextPerson(), 'cat');
-    assert.deepStrictEqual(app.selected, ['Aqur', 'Bobi', 'cat']);
+    assert.deepStrictEqual(app.selected, ['Alice', 'Bob', 'cat']);
     assert.strictEqual(app.selectNextPerson(), null);
 });
 
-
-test('Application_notifySelected()', async () => {
+testUtil('Application_notifySelected()', async () => {
     const app = new Application();
     const [names] = await app.getNames();
     app.selected = names.slice(); // Select all names initially
-    app.mailSystem.send = test.mock.fn(app.mailSystem.send);
-    app.mailSystem.write = test.mock.fn(app.mailSystem.write);
+    app.mailSystem.send = testUtil.mock.fn(app.mailSystem.send);
+    app.mailSystem.write = testUtil.mock.fn(app.mailSystem.write);
     app.notifySelected();
     assert.strictEqual(app.mailSystem.send.mock.calls.length, names.length);
     assert.strictEqual(app.mailSystem.write.mock.calls.length, names.length);
