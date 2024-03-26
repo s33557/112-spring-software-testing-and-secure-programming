@@ -2,7 +2,6 @@ const test = require('node:test');
 const assert = require('assert');
 const fs = require('fs');
 
-// Mock the file containing names
 test.mock.method(fs, 'readFile', (file, options, callback) => {
     callback(null, 'Aqur\nBobi\ncat');
 });
