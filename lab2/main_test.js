@@ -2,21 +2,30 @@ const test = require('node:test');
 const assert = require('assert');
 const { Application, MailSystem } = require('./main');
 
+const mailSystemMock = sinon.createStubInstance(MailSystem);
 
-test('Application selects and notifies a person', () => {
+test('Application should select a random person', () => {
+    const app = new Application();
+    const person = app.getRandomPerson();
+    assert(app.people.includes(person));
+});
 
-  const mailSystemStub = {
-    write: () => 'Mocked context',
-    send: () => true,
-  };
+test('Application should select next person not already selected', () => {
+    const app = new Application();
+    const selectedCount = app.selected.length;
+    app.selectNextPerson();
+    assert.strictEqual(app.selected.length, selectedCount + 1);
+});
 
-  const app = new Application();
-  app.mailSystem = mailSystemStub;
+test('Application should notify selected people by writing and sending mail', () => {
+    const app = new Application();
+    app.selected = ['Alice', 'Bob'];
 
-  assert.strictEqual(app.selectNextPerson(), 'John Doe'); 
+    const writeSpy = sinon.spy(mailSystemMock, 'write');
+    const sendSpy = sinon.spy(mailSystemMock, 'send');
 
-  app.notifySelected();
+    app.notifySelected();
 
-  assert.strictEqual(mailSystemStub.write.calledWith('John Doe'), true);
-  assert.strictEqual(mailSystemStub.send.calledWith('John Doe', 'Mocked context'), true);
+    assert.strictEqual(writeSpy.callCount, 2);
+    assert.strictEqual(sendSpy.callCount, 2);
 });
