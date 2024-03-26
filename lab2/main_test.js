@@ -21,11 +21,11 @@ test('Application should notify selected people by writing and sending mail', ()
     const app = new Application();
     app.selected = ['Alice', 'Bob'];
 
-    const writeSpy = sinon.spy(mailSystemMock, 'write');
-    const sendSpy = sinon.spy(mailSystemMock, 'send');
+    const writeStub = sinon.stub(mailSystemMock, 'write').returns('Mocked context');
+    const sendStub = sinon.stub(mailSystemMock, 'send').returns(true);
 
     app.notifySelected();
 
-    assert.strictEqual(writeSpy.callCount, 2);
-    assert.strictEqual(sendSpy.callCount, 2);
+    assert.strictEqual(writeStub.callCount, 2);
+    assert.strictEqual(sendStub.callCount, 2);
 });
