@@ -4,22 +4,20 @@ const readFile = util.promisify(fs.readFile);
 
 class MailSystem {
     write(name) {
-        // 修改 MailSystem 的 write 方法，使其返回包含名稱的特定內容
         console.log('--write mail for ' + name + '--');
         const context = 'Congrats, ' + name + '!';
         return context;
     }
 
     send(name, context) {
-        // 修改 MailSystem 的 send 方法，模擬發送郵件並隨機返回成功或失敗
         console.log('--send mail to ' + name + '--');
-        const success = Math.random() > 0.5; // 模擬郵件發送的隨機成功或失敗
+        const success = Math.random() > 0.5;
         if (success) {
             console.log('mail sent');
         } else {
             console.log('mail failed');
         }
-        return success; // 返回發送成功或失敗的結果
+        return success;
     }
 }
 
@@ -35,7 +33,6 @@ class Application {
     }
 
     async getNames() {
-        // 修改 getNames 方法，使其從文件中讀取名稱列表
         const data = await readFile('name_list.txt', 'utf8');
         const people = data.split('\n');
         const selected = [];
@@ -43,13 +40,11 @@ class Application {
     }
 
     getRandomPerson() {
-        // 修改 getRandomPerson 方法，隨機返回一個名稱
         const i = Math.floor(Math.random() * this.people.length);
         return this.people[i];
     }
 
     selectNextPerson() {
-        // 修改 selectNextPerson 方法，隨機選擇並返回一個未被選擇過的名稱
         console.log('--select next person--');
         if (this.people.length === this.selected.length) {
             console.log('all selected');
@@ -64,7 +59,6 @@ class Application {
     }
 
     notifySelected() {
-        // 修改 notifySelected 方法，通知所有已選擇的人
         console.log('--notify selected--');
         for (const x of this.selected) {
             const context = this.mailSystem.write(x);
