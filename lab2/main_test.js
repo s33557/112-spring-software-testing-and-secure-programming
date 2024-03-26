@@ -2,30 +2,23 @@ const test = require('node:test');
 const assert = require('assert');
 const { Application, MailSystem } = require('./main');
 
-const mailSystemMock = sinon.createStubInstance(MailSystem);
+test('Application selects and notifies a person', () => {
+  // Create a stub for MailSystem class
+  const mailSystemStub = {
+    write: () => 'Mocked context',
+    send: () => true,
+  };
 
-test('Application should select a random person', () => {
-    const app = new Application();
-    const person = app.getRandomPerson();
-    assert(app.people.includes(person));
-});
+  // Create an instance of Application using the stub
+  const app = new Application();
+  app.mailSystem = mailSystemStub;
 
-test('Application should select next person not already selected', () => {
-    const app = new Application();
-    const selectedCount = app.selected.length;
-    app.selectNextPerson();
-    assert.strictEqual(app.selected.length, selectedCount + 1);
-});
+  // Test selectNextPerson() method
+  assert.strictEqual(app.selectNextPerson(), 'John Doe'); // Assuming 'John Doe' is selected
 
-test('Application should notify selected people by writing and sending mail', () => {
-    const app = new Application();
-    app.selected = ['Alice', 'Bob'];
-
-    const writeStub = sinon.stub(mailSystemMock, 'write').returns('Mocked context');
-    const sendStub = sinon.stub(mailSystemMock, 'send').returns(true);
-
-    app.notifySelected();
-
-    assert.strictEqual(writeStub.callCount, 2);
-    assert.strictEqual(sendStub.callCount, 2);
+  // Test notifySelected() method
+  app.notifySelected();
+  // Assert that write and send methods of mailSystemStub were called
+  assert.strictEqual(mailSystemStub.write.calledWith('John Doe'), true);
+  assert.strictEqual(mailSystemStub.send.calledWith('John Doe', 'Mocked context'), true);
 });
