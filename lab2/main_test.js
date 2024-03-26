@@ -1,73 +1,65 @@
+const test = require('node:test');
+const assert = require('assert');
 const fs = require('fs');
-const util = require('util');
-const readFile = util.promisify(fs.readFile);
 
-class MailSystem {
-    write(name) {
-        console.log('--write mail for ' + name + '--');
-        const context = 'Congrats, ' + name + '!';
-        return context;
-    }
+// Mock the file containing names
+test.mock.method(fs, 'readFile', (file, options, callback) => {
+    callback(null, 'Aqur\nBobi\ncat');
+});
 
-    send(name, context) {
-        console.log('--send mail to ' + name + '--');
-        const success = Math.random() > 0.5;
-        if (success) {
-            console.log('mail sent');
-        } else {
-            console.log('mail failed');
-        }
-        return success;
-    }
-}
+const { Application, MailSystem } = require('./main');
 
-class Application {
-    constructor() {
-        this.people = [];
-        this.selected = [];
-        this.mailSystem = new MailSystem();
-        this.getNames().then(([people, selected]) => {
-            this.people = people;
-            this.selected = selected;
-        });
-    }
+test('MailSystem_write()', () => {
+    const mailSystem = new MailSystem();
+    assert.strictEqual(mailSystem.write('Aqur'), 'Congrats, Aqur!');
+    assert.strictEqual(mailSystem.write(202), 'Congrats, 202!');
+    assert.strictEqual(mailSystem.write(null), 'Congrats, null!');
+});
 
-    async getNames() {
-        const data = await readFile('name_list.txt', 'utf8');
-        const people = data.split('\n');
-        const selected = [];
-        return [people, selected];
-    }
+test('MailSystem_send()', () => {
+    const mailSystem = new MailSystem();
+    const name = 'Aqur';
+    test.mock.method(Math, 'random', () => 0.9);
+    assert.strictEqual(mailSystem.send(name, 'success'), true);
+    test.mock.method(Math, 'random', () => 0.2);
+    assert.strictEqual(mailSystem.send(name, 'fail'), false);
+});
 
-    getRandomPerson() {
-        const i = Math.floor(Math.random() * this.people.length);
-        return this.people[i];
-    }
+test('Application_getNames()', async () => {
+    const app = new Application();
+    const nameList = ['Aqur', 'Bobi', 'cat'];
+    const [names, selected] = await app.getNames();
+    assert.deepStrictEqual(names, nameList);
+    assert.deepStrictEqual(selected, []);
+});
 
-    selectNextPerson() {
-        console.log('--select next person--');
-        if (this.people.length === this.selected.length) {
-            console.log('all selected');
-            return null;
-        }
-        let person = this.getRandomPerson();
-        while (this.selected.includes(person)) {
-            person = this.getRandomPerson();
-        }
-        this.selected.push(person);
-        return person;
-    }
+test('Application_getRandomPerson()', async () => {
+    const app = new Application();
+    const [names] = await app.getNames();                          
+    const randomPerson = app.getRandomPerson();
+});
 
-    notifySelected() {
-        console.log('--notify selected--');
-        for (const x of this.selected) {
-            const context = this.mailSystem.write(x);
-            this.mailSystem.send(x, context);
-        }
-    }
-}
+test('Application_selectNextPerson()', async () => {
+    const app = new Application();
+    const [names] = await app.getNames();
+    app.selected = ['Aqur'];
+    let count = 0;
+    test.mock.method(app, 'getRandomPerson', () => names[count++]);
+    assert.strictEqual(app.selectNextPerson(), 'Bobi');
+    assert.deepStrictEqual(app.selected, ['Aqur', 'Bobi']);
+    assert.strictEqual(app.selectNextPerson(), 'cat');
+    assert.deepStrictEqual(app.selected, ['Aqur', 'Bobi', 'cat']);
+    assert.strictEqual(app.selectNextPerson(), null);
+});
 
-module.exports = {
-    Application,
-    MailSystem,
-};
+
+test('Application_notifySelected()', async () => {
+    const app = new Application();
+    const [names] = await app.getNames();
+    app.selected = names.slice(); // Select all names initially
+    app.mailSystem.send = test.mock.fn(app.mailSystem.send);
+    app.mailSystem.write = test.mock.fn(app.mailSystem.write);
+    app.notifySelected();
+    assert.strictEqual(app.mailSystem.send.mock.calls.length, names.length);
+    assert.strictEqual(app.mailSystem.write.mock.calls.length, names.length);
+});
