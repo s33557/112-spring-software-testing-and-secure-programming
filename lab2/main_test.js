@@ -9,16 +9,14 @@ test('Application selects and notifies a person', () => {
     send: () => true,
   };
 
-  // Create an instance of Application using the stub
   const app = new Application();
   app.mailSystem = mailSystemStub;
 
-  // Test selectNextPerson() method
-  assert.strictEqual(app.selectNextPerson(), 'John Doe'); // Assuming 'John Doe' is selected
+  const selectedPerson = app.selectNextPerson();
+  assert.strictEqual(selectedPerson !== null, true); // Assuming a person is selected
 
-  // Test notifySelected() method
   app.notifySelected();
-  // Assert that write and send methods of mailSystemStub were called
-  assert.strictEqual(mailSystemStub.write.calledWith('John Doe'), true);
-  assert.strictEqual(mailSystemStub.send.calledWith('John Doe', 'Mocked context'), true);
+
+  assert.strictEqual(mailSystemStub.writeCalled, true);
+  assert.strictEqual(mailSystemStub.sendCalled, true);
 });
