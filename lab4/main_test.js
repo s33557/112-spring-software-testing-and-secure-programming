@@ -19,7 +19,9 @@ const puppeteer = require('puppeteer');
 
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const title = await page.title();
-    console.log(title);
+    const fullTitle = await page.title();
+    const desiredTitle = fullTitle.split(' | ')[0];
+    console.log(desiredTitle);
+
     await browser.close();
 })();
