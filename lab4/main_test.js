@@ -20,6 +20,6 @@ const puppeteer = require('puppeteer');
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     const title = await page.title();
-    console.log('Page Title:', title);
+    console.log(title);
     await browser.close();
 })();
