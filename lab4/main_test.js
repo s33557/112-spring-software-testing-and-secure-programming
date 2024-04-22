@@ -14,7 +14,7 @@ const puppeteer = require('puppeteer');
     await page.waitForSelector('.DocSearch-Form');
     await page.keyboard.type('chipi chipi chapa chapa');
 
-    await page.waitForSelector('#docsearch-item-5 a[href="/webdriver-bidi/#measuring-progress"]>
+    await page.waitForSelector('#docsearch-item-5 a[href="/webdriver-bidi/#measuring-progress"]');
     await page.click('#docsearch-item-5 a[href="/webdriver-bidi/#measuring-progress"]');
 
     await new Promise(resolve => setTimeout(resolve, 2000));
