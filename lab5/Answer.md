@@ -213,7 +213,16 @@ READ of size 4 at 0x7ffcbde04efc thread T0
 ## ASan Out-of-bound Write bypass Redzone
 ### Source code
 ```
+#include <stdio.h>
+#include <stdlib.h>
 
+int main() {
+    int a[10];
+    int *ptr = &a[0];
+    ptr += 11; 
+    *ptr = 10;
+    return 0;
+}
 ```
 ### Why
 
